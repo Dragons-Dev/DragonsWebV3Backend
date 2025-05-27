@@ -29,8 +29,8 @@ async def set_cookie(request: Request, data: Cookie):
         key=data.name,            # Name
         value=data.value,         # Payload
         httponly=True,            # kein JS-Zugriff
-        secure=False,             # in Prod: True (nur HTTPS)
-        samesite="lax",           # oder "strict"/"none"
+        secure=True,             # in Prod: True (nur HTTPS)
+        samesite="none",           # oder "strict"/"none"
         expires=data.expires + timedelta(days=30),     # Lebensdauer in Sekunden
     )
     return response
@@ -45,8 +45,8 @@ async def edit_cookie(data: Cookie):
         key=data.name,            # Name
         value=data.value,         # Payload
         httponly=True,            # kein JS-Zugriff
-        secure=False,             # in Prod: True (nur HTTPS)
-        samesite="lax",           # oder "strict"/"none"
+        secure=True,             # in Prod: True (nur HTTPS)
+        samesite="none",           # oder "strict"/"none"
         expires=data.expires,     # Lebensdauer in Sekunden
     )
     return response
@@ -57,11 +57,10 @@ async def delete_cookie(data: Cookie):
     Deletes a cookie in the response.
     """
     response = JSONResponse(status_code=200, content={"message": "Delete Cookie", "data": data})
-
     response.delete_cookie(
         key=data.name,            # Name
         httponly=True,            # kein JS-Zugriff
-        secure=False,             # in Prod: True (nur HTTPS)
-        samesite="lax",           # oder "strict"/"none"
+        secure=True,             # in Prod: True (nur HTTPS)
+        samesite="none",           # oder "strict"/"none"
     )
     return response
