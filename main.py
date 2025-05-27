@@ -1,7 +1,14 @@
-from utils import WebServer
 from contextlib import asynccontextmanager
+import logging
 
+from utils import WebServer
 from routers import *
+
+
+class IgnoreConnectionResetFilter(logging.Filter):
+    def filter(self, record):  # this ignores ConnectionResetError in the log. this was implemented during development to avoid cluttering the logs with connection reset errors that are not critical.
+        return record.getMessage().startswith("ConnectionResetError")
+logging.getLogger("asyncio").addFilter(IgnoreConnectionResetFilter())
 
 
 @asynccontextmanager
