@@ -10,7 +10,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 class DBCookie(Base):
     __tablename__ = "cookie"
     name = Column(String, primary_key=True)
-    value = Column(Integer, primary_key=True)
+    value = Column(String, primary_key=True)
     expires = Column(DateTime, primary_key=True)
 
     def __repr__(self):
