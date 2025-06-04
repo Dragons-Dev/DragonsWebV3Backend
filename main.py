@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
+from datetime import datetime
 import logging
 
+from database.database import DataBase
 from utils import WebServer
 from routers import *
 
@@ -14,19 +16,17 @@ logging.getLogger("asyncio").addFilter(IgnoreConnectionResetFilter())
 @asynccontextmanager
 async def lifespan(app_: WebServer):
     # Initialize the database connection here
-    app_.db = "Database connection"
+    app_.db = DataBase("sqlite+aiosqlite:///data/main.sqlite")
+    # make sure the folder already exists, otherwise the database connection will fail
+    await app_.db.setup(boot=datetime.now())
     yield
     # Close the database connection here
     app_.db = None
 
 
-app = WebServer()
+app = WebServer(lifespan=lifespan)
 app.include_router(base_router)
-app.include_router(cookie_router)
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.include_router(authentication_router)
 
 
 if __name__ == '__main__':

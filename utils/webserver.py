@@ -7,6 +7,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.requests import Request
 from fastapi.responses import Response
 
+from database import DataBase
+
 
 class SuppressConnectionResetMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -24,7 +26,7 @@ class SuppressConnectionResetMiddleware(BaseHTTPMiddleware):
 class WebServer(FastAPI):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.db = None
+        self.db: DataBase | None = None
         self.boot_time = datetime.now()
         self.add_middleware(
             CORSMiddleware,
