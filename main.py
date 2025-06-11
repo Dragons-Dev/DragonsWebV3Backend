@@ -21,6 +21,7 @@ async def lifespan(app_: WebServer):
     await app_.db.setup(boot=datetime.now())
     yield
     # Close the database connection here
+    await app_.db.close()
     app_.db = None
 
 
