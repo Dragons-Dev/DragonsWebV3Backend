@@ -48,16 +48,20 @@ async def register(request: Request, mail: str = Form(...), name: str = Form(...
         password = hashed_password
     )
     await app.db.insert_authentication(auth)
+    user = await app.db.get_authentication(name)
     res = JSONResponse(status_code=200, content={"status": 200, "message": "OK"})
     cookie_value = uuid4().__str__()
     res.set_cookie(
         key="session",
         value=cookie_value,
         httponly=True,
+        secure=True,
+        samesite="None",
         expires=datetime.now(tz=timezone.utc) + timedelta(days=1),
     )
     await app.db.insert_cookie(
         DBCookie(
+            user=user.id,
             name="session",
             value=cookie_value,
             expires=datetime.now(tz=timezone.utc) + timedelta(days=1)
@@ -76,10 +80,12 @@ async def login(request: Request, name: str = Form(...), password: str = Form(..
     if auth is None or (pw != auth.password):
         return JSONResponse(status_code=404, content={"status": 404, "message": "Invalid login details."})
     res = JSONResponse(status_code=200, content={"status": 200, "message": "OK"})
-    cookie_value = uuid4().__str__()
+    cookie_value = str(uuid4())
+    user = await app.db.get_authentication(name)
     if stay_logged_in:
         await app.db.insert_cookie(
             DBCookie(
+                user=user.id,
                 name="session",
                 value=cookie_value,
                 expires=datetime.now(tz=timezone.utc) + timedelta(days=30)
@@ -89,11 +95,14 @@ async def login(request: Request, name: str = Form(...), password: str = Form(..
             key="session",
             value=cookie_value,
             httponly=True,
+            secure=True,
+            samesite="None",
             expires=datetime.now(tz=timezone.utc) + timedelta(days=30),
         )
     else:
         await app.db.insert_cookie(
             DBCookie(
+                user=user.id,
                 name="session",
                 value=cookie_value,
                 expires=datetime.now(tz=timezone.utc) + timedelta(hours=24)
@@ -102,6 +111,8 @@ async def login(request: Request, name: str = Form(...), password: str = Form(..
         res.set_cookie(
             key="session",
             value=cookie_value,
+            secure=True,
+            samesite="None",
             httponly=True
         )
     return res
@@ -119,3 +130,22 @@ async def logout(request: Request):
         res.delete_cookie("session")
         return res
     return JSONResponse(status_code=404, content={"status": 404, "message": "No active session found."})
+
+@router.get("/userData")
+async def get_user_data(request: Request):
+    """
+    get user data.
+    """
+    app: WebServer = request.app
+    session_cookie = request.cookies.get("session")
+    print(request.cookies)
+    if session_cookie:
+        id_ = await app.db.get_cookie_value(session_cookie)
+        res = await app.db.get_authentication(id_.id)
+        return JSONResponse(status_code=200, content={"status": 200, "message": "OK", "data": {
+                "id": id_,
+                "name": res.name
+            }
+        })
+    else:
+        return JSONResponse(status_code=404, content={"status": 404, "message": "No active session found."})

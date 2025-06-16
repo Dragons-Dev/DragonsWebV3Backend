@@ -36,6 +36,6 @@ if __name__ == '__main__':
         "main:app",
         host="0.0.0.0",
         port=8000,
-        ssl_keyfile="_wildcard.localhost+2-key.pem",
-        ssl_certfile="_wildcard.localhost+2.pem"
+        ssl_keyfile="example.com+4-key.pem",
+        ssl_certfile="example.com+4.pem",
     )

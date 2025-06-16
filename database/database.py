@@ -78,7 +78,7 @@ class DataBase:
             await session.commit()
             self.logger.debug(f"Updated cookie: {cookie}")
 
-    async def get_cookie(self, name: str) -> DBCookie | None:
+    async def get_cookie(self, id_: int) -> DBCookie | None:
         """
         Retrieves a cookie by its name from the database.
 
@@ -89,12 +89,28 @@ class DataBase:
             Row | None: The cookie row if found, otherwise None.
         """
         async with self.AsyncSessionLocal() as session:
-            result = await session.execute(select(DBCookie).where(DBCookie.name == name))
-            cookie = result.scalar_one_or_none()
+            result = await session.execute(select(DBCookie).where(DBCookie.id == id_))
+            cookie = result.scalars().all()
             if cookie:
                 self.logger.debug(f"Retrieved cookie: {cookie}")
             else:
-                self.logger.debug(f"Cookie with name '{name}' not found.")
+                self.logger.debug(f"Cookie with id '{id_}' not found.")
+            return cookie
+
+    async def get_cookie_value(self, cookie_value: str) -> DBCookie:
+        """
+        Retrieves the cookie with the name 'session' from the database.
+
+        Returns:
+            DBCookie: The cookie object if found, otherwise None.
+        """
+        async with self.AsyncSessionLocal() as session:
+            result = await session.execute(select(DBCookie).where(DBCookie.value == cookie_value))
+            cookie = result.scalar_one_or_none()
+            if cookie:
+                self.logger.debug(f"Retrieved session cookie: {cookie}")
+            else:
+                self.logger.debug("Session cookie not found.")
             return cookie
 
     async def delete_cookie(self, name: str, value: str) -> None:
@@ -128,25 +144,25 @@ class DataBase:
                 await session.commit()
                 self.logger.debug(f"Created authentication record: {auth}")
 
-    async def get_authentication(self, name: str) -> Authentication | None:
+    async def get_authentication(self, name: str | int) -> Authentication | None:
         """
         Retrieves an authentication record by its name from the database.
 
         Args:
-            name (str): The name or email of the authentication record to retrieve.
+            name/id (str | int): The name, id or email of the authentication record to retrieve.
 
         Returns:
             Authentication | None: The authentication record if found, otherwise None.
         """
         async with self.AsyncSessionLocal() as session:
             result = await session.execute(select(Authentication).where(
-                or_(Authentication.name == name, Authentication.mail == name)
+                or_(Authentication.name == name, Authentication.mail == name, Authentication.id == name)
             ))
             auth = result.scalar_one_or_none()
             if auth:
                 self.logger.debug(f"Retrieved authentication record: {auth}")
             else:
-                self.logger.debug(f"Authentication record with name '{name}' not found.")
+                self.logger.debug(f"Authentication record with name/id '{name}' not found.")
             return auth
 
     async def update_authentication(self, name: str, auth: Authentication) -> None:

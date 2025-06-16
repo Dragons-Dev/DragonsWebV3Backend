@@ -15,6 +15,7 @@ class DBCookie(Base):
         ``expires`` (datetime): The name of the cookie.
     """
     __tablename__ = "cookie"
+    user = Column(Integer, primary_key=True)
     name = Column(String, primary_key=True)
     value = Column(String, primary_key=True)
     expires = Column(DateTime, primary_key=True)
